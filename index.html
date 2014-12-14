@@ -219,7 +219,7 @@ function plotName(name, gender) {
 			.attr("text-anchor", "middle")
 			.style("font-size", "14px")
 			.style("font-weight", "bold")
-			.text("Most living " + gender_text + " named " + name + " were born around " + data[0]["Median"] + " and range from " + (2015 - (data[0]["75th_Percentile"])) + " to " + (2015 - (data[0]["25th_Percentile"])) + " years old.");
+			.text("The median living " + gender_text.substring(0, gender_text.length - 1) + " named " + name + " was born around " + data[0]["Median"] + " and ranges from " + (2015 - (data[0]["75th_Percentile"])) + " to " + (2015 - (data[0]["25th_Percentile"])) + " years old.");
     });
 }
 
