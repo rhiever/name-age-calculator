@@ -58,9 +58,7 @@
 
 <div id="chart"></div>
 
-<p>The <strong>black line</strong> shows the number of babies given the name each year.</p>
-
-<p>The <font color="#3F5D7D"><strong>shaded area</strong></font> shows the number of people alive with the name as of January 1, 2015.</p>
+<p><strong>Black line</strong>: # babies given name that year. <font color="#3F5D7D"><strong>Shaded area</strong></font>: # people alive w/ name as of Jan. 2015.</p>
 
 <form action="index.html" method="get" id="name_form">
 	<select id="GenderPicker" name="Gender" form="name_form">
@@ -83,7 +81,7 @@
 <tr>
 <td align="left" width="33%">Code and analysis by <strong><a href="http://www.randalolson.com/">Randy Olson</a></strong></td>
 <td align="center" width="33%"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img src="images/CC.png" /></a></td>
-<td align="right" width="33%">Data from <strong>SSA.gov <a href="http://www.ssa.gov/oact/babynames/limits.html">[1]</a> <a href="http://www.ssa.gov/oact/NOTES/as120/LifeTables_Tbl_7.html">[2]</a></strong></td>
+<td align="right" width="33%">Methods from <strong><a href="http://fivethirtyeight.com/features/how-to-tell-someones-age-when-all-you-know-is-her-name/">FiveThirtyEight</a></strong><br />Data from <strong>SSA.gov <a href="http://www.ssa.gov/oact/babynames/limits.html">[1]</a> <a href="http://www.ssa.gov/oact/NOTES/as120/LifeTables_Tbl_7.html">[2]</a></strong></td>
 </tr>
 </table>
 </center>
@@ -96,16 +94,11 @@ function plotName(name, gender) {
     http.open("HEAD", "names/" + gender + "/" + name.charAt(0) + "/" + name + ".txt", false);
     http.send();
     if (http.status == 404) {
-    	var gender_text = "female";
-		if (gender == "M") {
-			gender_text = "male";
-		}
-    
     	window.alert("Sorry, \"" + name + "\" is not in the " + gender_text + " name database.");
     	window.location.replace("index.html");
     }
     
-    var margin = {top: 40, right: 20, bottom: 30, left: 60},
+    var margin = {top: 40, right: 60, bottom: 60, left: 60},
     width = 600,
     height = 400;
 
@@ -209,19 +202,25 @@ function plotName(name, gender) {
       svg.append("path")
         .attr("class", "area")
         .attr("d", area(data));
-		  
-	  var gender_text = "girls";
-	  if (gender == "M") {
-	  	gender_text = "boys";
-	  }
-		  
-	  svg.append("text")
-	  	.attr("x", (width / 2))             
-        .attr("y", 0 - (margin.top / 2))
-        .attr("text-anchor", "middle")
-        .style("font-size", "24px")
-        .text("Age distribution of American " + gender_text + " named " + name);
+        
+      svg.append("text")
+		.attr("x", (width / 2))             
+		.attr("y", 0 - (margin.top / 2))
+		.attr("text-anchor", "middle")
+		.style("font-size", "24px")
+		.text("Age distribution of American " + gender_text + " named " + name);
 	});
+	
+	d3.csv("names/" + gender + "/" + name.charAt(0) + "/" + name + "-stats.txt", function(error, data) {
+	    
+		svg.append("text")
+			.attr("x", (width / 2))             
+			.attr("y", height + margin.bottom - 10)
+			.attr("text-anchor", "middle")
+			.style("font-size", "14px")
+			.style("font-weight", "bold")
+			.text("Most living " + gender_text + " named " + name + " were born around " + data[0]["Median"] + " and range from " + (2015 - (data[0]["75th_Percentile"])) + " to " + (2015 - (data[0]["25th_Percentile"])) + " years old.");
+    });
 }
 
 function toTitleCase(str) {
@@ -272,6 +271,11 @@ else {
 }
 
 document.getElementById("download_url").href = "names/" + gender + "/" + name.charAt(0) + "/" + name + ".txt";
+
+var gender_text = "girls";
+if (gender == "M") {
+	gender_text = "boys";
+}
 
 plotName(name, gender);
 </script>
