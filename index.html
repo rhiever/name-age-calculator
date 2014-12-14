@@ -96,7 +96,12 @@ function plotName(name, gender) {
     http.open("HEAD", "names/" + gender + "/" + name.charAt(0) + "/" + name + ".txt", false);
     http.send();
     if (http.status == 404) {
-    	window.alert("Sorry, \"" + name + "\" is not in the baby name database.");
+    	var gender_text = "female";
+		if (gender == "M") {
+			gender_text = "male";
+		}
+    
+    	window.alert("Sorry, \"" + name + "\" is not in the " + gender_text + " name database.");
     	window.location.replace("index.html");
     }
     
