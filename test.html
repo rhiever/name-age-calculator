@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<meta name="description" content="Web tool that calculates the most likely age for someone given their name.">
+<meta name="keywords" content="name, age, calculator, guess, visualization, united states, usa">
+<meta name="author" content="Randal S. Olson">
+<title>Name Age Calculator</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+<style>
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.grid .tick {
+    stroke: lightgrey;
+    opacity: 0.7;
+}
+
+.grid path {
+      stroke-width: 0;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.area {
+    fill: #3F5D7D;
+    stroke-width: 0;
+}
+
+.line {
+  fill: none;
+  stroke: black;
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+
+<center>
+<br />
+
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Wide ad -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-5475335462909831"
+     data-ad-slot="7332600901"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<br />
+<br />
+
+<div id="chart"></div>
+
+<p><strong>Black line</strong>: # babies given name that year. <font color="#3F5D7D"><strong>Shaded area</strong></font>: # people alive w/ name as of Jan. 2015.</p>
+
+<form action="index.html" method="get" id="name_form">
+	<select id="GenderPicker" name="Gender" form="name_form">
+		<option value="F">Female</option>
+		<option value="M" selected>Male</option>
+	</select>
+	<input type="text" id="NamePicker" name="Name"></input>
+	<input type="submit" value="Calculate">
+</form>
+
+<br />
+
+<p><a href="" target="_blank" id="download_url">Download the data</a> for the current chart or <a href="index.html">look up a random popular name</a>.</p>
+
+<p>Records prior to 1940 are <a href="http://www.prooffreader.com/2014/08/sex-ratio-is-clearest-indicator-of-bias.html">estimates</a> and should be taken with a grain of salt.</p>
+
+<p>Records after 1985 are based on Social Security records and are quite reliable.</p>
+
+<table width="720px">
+<tr>
+<td align="left" width="33%">Code and analysis by <strong><a href="http://www.randalolson.com/">Randy Olson</a></strong></td>
+<td align="center" width="33%"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img src="images/CC.png" /></a></td>
+<td align="right" width="33%">Methods from <strong><a href="http://fivethirtyeight.com/features/how-to-tell-someones-age-when-all-you-know-is-her-name/">FiveThirtyEight</a></strong><br />Data from <strong>SSA.gov <a href="http://www.ssa.gov/oact/babynames/limits.html">[1]</a> <a href="http://www.ssa.gov/oact/NOTES/as120/LifeTables_Tbl_7.html">[2]</a></strong></td>
+</tr>
+</table>
+</center>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script>
+function plotName(name, gender) {
+	
+	var http = new XMLHttpRequest();
+    http.open("HEAD", "names/" + gender + "/" + name.charAt(0) + "/" + name + ".txt", false);
+    http.send();
+    if (http.status == 404) {
+    	window.alert("Sorry, \"" + name + "\" is not in the " + gender_text + " name database.");
+    	window.location.replace("index.html");
+    }
+    
+    var margin = {top: 40, right: 60, bottom: 60, left: 60},
+    width = 600,
+    height = 400;
+
+	var parseDate = d3.time.format("%Y").parse;
+
+	var x = d3.time.scale()
+		.range([0, width]);
+
+	var y = d3.scale.linear()
+		.range([height, 0]);
+
+	var color = d3.scale.ordinal().range(["#000000", "#008AB8"]);
+
+	var xAxis = d3.svg.axis()
+		.scale(x)
+		.orient("bottom")
+		.ticks(12)
+		.tickFormat(d3.time.format("%Y"));
+
+	var yAxis = d3.svg.axis()
+		.scale(y)
+		.orient("left")
+		.ticks(6);
+		
+	var area = d3.svg.area()
+		.interpolate("basis")
+		.x(function(d) { return x(d.YOB); })
+		.y0(height)
+		.y1(function(d) { return y(d.Alive); });
+
+	var line = d3.svg.line()
+		.interpolate("basis")
+		.x(function(d) { return x(d.YOB); })
+		.y(function(d) { return y(d.Born); });
+
+	var svg = d3.select("#chart").append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+	  .append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		
+	function make_x_axis() {        
+		return d3.svg.axis()
+			.scale(x)
+			 .orient("bottom")
+			 .ticks(5)
+	}
+		
+	function make_y_axis() {        
+		return d3.svg.axis()
+			.scale(y)
+			.orient("left")
+			.ticks(5)
+	}
+	
+	d3.csv("names/" + gender + "/" + name.charAt(0) + "/" + name + ".txt", function(error, data) {
+	  data.forEach(function(d) {
+		d.YOB = parseDate(d.YOB);
+		d.Born = +d.Born;
+		d.Alive = +d.Alive;
+	  });
+
+	  x.domain(d3.extent(data, function(d) { return d.YOB; }));
+	  y.domain([0, d3.max(data, function(d) { return d.Born; })]);
+	  
+	  svg.append("g")         
+        .attr("class", "grid")
+        .attr("transform", "translate(0," + height + ")")
+        .call(make_x_axis()
+            .tickSize(-height, 0, 0)
+            .tickFormat("")
+        )
+		  
+	  svg.append("g")         
+        .attr("class", "grid")
+        .call(make_y_axis()
+            .tickSize(-width, 0, 0)
+            .tickFormat("")
+        )
+
+	  svg.append("g")
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xAxis);
+
+	  svg.append("g")
+		  .attr("class", "y axis")
+		  .call(yAxis)
+		.append("text")
+		  .attr("transform", "rotate(-90)")
+		  .attr("y", -75)
+       	  .attr("x", -125)
+       	  .attr("dy", "1em")
+		  .style("text-anchor", "end");
+		  //.text("Number of people with name");
+
+	  svg.append("path")
+        .attr("class", "line")
+        .attr("d", line(data));
+        
+      svg.append("path")
+        .attr("class", "area")
+        .attr("d", area(data));
+        
+      svg.append("text")
+		.attr("x", (width / 2))             
+		.attr("y", 0 - (margin.top / 2))
+		.attr("text-anchor", "middle")
+		.style("font-size", "24px")
+		.text("Age distribution of American " + gender_text + " named " + name);
+	});
+	
+	d3.csv("names/" + gender + "/" + name.charAt(0) + "/" + name + "-stats.txt", function(error, data) {
+	    
+		svg.append("text")
+			.attr("x", (width / 2))             
+			.attr("y", height + margin.bottom - 10)
+			.attr("text-anchor", "middle")
+			.style("font-size", "14px")
+			.style("font-weight", "bold")
+			.text("The median living " + gender_text.substring(0, gender_text.length - 1) + " named " + name + " was born around " + data[0]["Median"] + " and ranges from " + (2015 - (data[0]["75th_Percentile"])) + " to " + (2015 - (data[0]["25th_Percentile"])) + " years old.");
+    });
+}
+
+function toTitleCase(str) {
+    return str.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+}
+
+// return a parameter value from the current URL
+function getParam ( sname )
+{
+  var params = location.search.substr(location.search.indexOf("?") + 1);
+  var sval = "";
+  params = params.split("&");
+  // split param and value into individual pieces
+  for (var i = 0; i < params.length; i++) {
+    temp = params[i].split("=");
+    if ( [temp[0]] == sname ) {
+    	sval = temp[1];
+    	break;
+    }
+   }
+   return sval;
+}
+
+var name = toTitleCase(getParam("Name"));
+var gender = toTitleCase(getParam("Gender"));
+
+if (name == "" || gender == "") {
+	var popular_names = ["Aaron", "Abigail", "Adam", "Adrian", "Agnes", "Aiden", "Alan", "Albert", "Alejandro", "Alex", "Alexa", "Alexander", "Alexandra", "Alexis", "Alfred", "Alice", "Alicia", "Alison", "Allen", "Allison", "Alma", "Alvin", "Alyssa", "Amanda", "Amber", "Amelia", "Amy", "Andre", "Andrea", "Andrew", "Angel", "Angela", "Angelina", "Anita", "Ann", "Anna", "Anne", "Annette", "Annie", "Anthony", "Antonio", "April", "Arlene", "Arnold", "Arthur", "Ashley", "Audrey", "Austin", "Autumn", "Ava", "Barbara", "Barry", "Beatrice", "Benjamin", "Bernard", "Bernice", "Bertha", "Bessie", "Beth", "Betty", "Beverly", "Bill", "Billie", "Billy", "Blake", "Bobby", "Bonnie", "Bradley", "Brandi", "Brandon", "Brandy", "Brenda", "Brent", "Brett", "Brian", "Brianna", "Brittany", "Brooke", "Bruce", "Bryan", "Bryce", "Caitlin", "Caleb", "Calvin", "Cameron", "Carl", "Carla", "Carlos", "Carmen", "Carol", "Carole", "Caroline", "Carolyn", "Carrie", "Carter", "Casey", "Cassandra", "Catherine", "Cathy", "Cecil", "Chad", "Charlene", "Charles", "Charlie", "Charlotte", "Chase", "Chelsea", "Cheryl", "Chester", "Chloe", "Chris", "Christian", "Christina", "Christine", "Christopher", "Cindy", "Claire", "Clara", "Clarence", "Claudia", "Clayton", "Clifford", "Clyde", "Cody", "Cole", "Colin", "Colleen", "Connie", "Connor", "Constance", "Corey", "Cory", "Courtney", "Craig", "Crystal", "Curtis", "Cynthia", "Daisy", "Dale", "Dan", "Dana", "Daniel", "Danielle", "Danny", "Darlene", "Darrell", "David", "Dawn", "Dean", "Deanna", "Debbie", "Deborah", "Debra", "Delores", "Denise", "Dennis", "Derek", "Derrick", "Destiny", "Devin", "Diana", "Diane", "Dolores", "Dominic", "Don", "Donald", "Donna", "Doris", "Dorothy", "Douglas", "Duane", "Dustin", "Dylan", "Earl", "Eddie", "Edgar", "Edith", "Edna", "Edward", "Edwin", "Eileen", "Elaine", "Eleanor", "Elijah", "Elizabeth", "Ella", "Ellen", "Elmer", "Elsie", "Emily", "Emma", "Eric", "Erica", "Erik", "Erika", "Erin", "Ernest", "Esther", "Ethan", "Ethel", "Eugene", "Eva", "Evan", "Evelyn", "Faith", "Florence", "Floyd", "Frances", "Francis", "Francisco", "Frank", "Franklin", "Fred", "Frederick", "Gabriel", "Gabrielle", "Gail", "Garrett", "Gary", "Gavin", "Gene", "George", "Georgia", "Gerald", "Geraldine", "Gertrude", "Gilbert", "Gina", "Gladys", "Glen", "Glenda", "Glenn", "Gloria", "Gordon", "Grace", "Grant", "Gregory", "Gwendolyn", "Hailey", "Haley", "Hannah", "Harold", "Harry", "Harvey", "Hazel", "Heather", "Heidi", "Helen", "Henry", "Herbert", "Herman", "Holly", "Howard", "Hunter", "Ian", "Ida", "Irene", "Isaac", "Isabel", "Isabella", "Isaiah", "Ivan", "Jack", "Jackson", "Jacob", "Jacqueline", "Jake", "James", "Jamie", "Jane", "Janet", "Janice", "Jared", "Jasmine", "Jason", "Jay", "Jayden", "Jean", "Jeanette", "Jeanne", "Jeff", "Jeffery", "Jeffrey", "Jenna", "Jennie", "Jennifer", "Jeremiah", "Jeremy", "Jerome", "Jerry", "Jesse", "Jessica", "Jessie", "Jessie", "Jesus", "Jill", "Jim", "Jimmie", "Jimmy", "Jo", "Joan", "Joann", "Joanne", "Joe", "Joel", "John", "Johnny", "Jon", "Jonathan", "Jordan", "Jordan", "Jorge", "Jose", "Joseph", "Josephine", "Joshua", "Joy", "Joyce", "Juan", "Juanita", "Judith", "Judy", "Julia", "Julian", "Julie", "June", "Justin", "Kaitlyn", "Karen", "Katelyn", "Katherine", "Kathleen", "Kathryn", "Kathy", "Katie", "Kayla", "Kaylee", "Keith", "Kelly", "Kelsey", "Kenneth", "Kevin", "Kim", "Kimberly", "Kristen", "Kristin", "Kristina", "Kyle", "Lance", "Landon", "Larry", "Laura", "Lauren", "Laurie", "Lawrence", "Leah", "Lee", "Lena", "Leo", "Leon", "Leonard", "Leroy", "Leslie", "Leslie", "Lester", "Levi", "Lewis", "Liam", "Lillian", "Lillie", "Lily", "Linda", "Lindsay", "Lindsey", "Lisa", "Lloyd", "Logan", "Lois", "Loretta", "Lori", "Lorraine", "Louis", "Louise", "Lucas", "Lucille", "Lucy", "Luis", "Luke", "Lydia", "Lynn", "Mackenzie", "Madeline", "Madison", "Manuel", "Marc", "Marcia", "Marcus", "Margaret", "Margie", "Maria", "Marian", "Marie", "Marilyn", "Mario", "Marion", "Marissa", "Marjorie", "Mark", "Marlene", "Marsha", "Martha", "Martin", "Marvin", "Mary", "Mason", "Matthew", "Mattie", "Maureen", "Maurice", "Max", "Maxine", "Megan", "Melanie", "Melinda", "Melissa", "Melvin", "Mia", "Michael", "Micheal", "Michele", "Michelle", "Miguel", "Mike", "Mildred", "Milton", "Minnie", "Miranda", "Miriam", "Mitchell", "Molly", "Monica", "Morgan", "Myrtle", "Nancy", "Naomi", "Natalie", "Nathan", "Nathaniel", "Nellie", "Nicholas", "Nicole", "Nina", "Noah", "Nora", "Norma", "Norman", "Oliver", "Olivia", "Oscar", "Owen", "Paige", "Pamela", "Patricia", "Patrick", "Patsy", "Paul", "Paula", "Pauline", "Pearl", "Peggy", "Peter", "Philip", "Phillip", "Phyllis", "Preston", "Priscilla", "Rachel", "Ralph", "Randall", "Randy", "Ray", "Raymond", "Rebecca", "Regina", "Reginald", "Renee", "Rhonda", "Ricardo", "Richard", "Ricky", "Rita", "Robert", "Roberta", "Roberto", "Robin", "Rodney", "Roger", "Ronald", "Ronnie", "Rosa", "Rose", "Rosemary", "Roy", "Ruben", "Ruby", "Russell", "Ruth", "Ryan", "Sabrina", "Sally", "Sam", "Samantha", "Samuel", "Sandra", "Sara", "Sarah", "Savannah", "Scott", "Sean", "Sebastian", "Seth", "Shane", "Shannon", "Sharon", "Shawn", "Sheila", "Shelby", "Sherry", "Shirley", "Sophia", "Spencer", "Stacey", "Stacy", "Stanley", "Stella", "Stephanie", "Stephen", "Steve", "Steven", "Sue", "Susan", "Suzanne", "Sydney", "Sylvia", "Tamara", "Tammy", "Tanya", "Tara", "Taylor", "Taylor", "Teresa", "Terri", "Terry", "Thelma", "Theodore", "Theresa", "Thomas", "Tiffany", "Timothy", "Tina", "Todd", "Tom", "Tommy", "Tony", "Tonya", "Tracy", "Travis", "Trevor", "Troy", "Tyler", "Valerie", "Vanessa", "Vera", "Vernon", "Veronica", "Vicki", "Vickie", "Victor", "Victoria", "Vincent", "Viola", "Violet", "Virginia", "Vivian", "Walter", "Wanda", "Warren", "Wayne", "Wendy", "Wesley", "William", "Willie", "Willie", "Wilma", "Wyatt", "Xavier", "Yolanda", "Yvonne", "Zachary"];
+	
+	var name_genders = ["M", "F", "M", "M", "F", "M", "M", "M", "M", "M", "F", "M", "F", "F", "M", "F", "F", "F", "M", "F", "F", "M", "F", "F", "F", "F", "F", "M", "F", "M", "M", "F", "F", "F", "F", "F", "F", "F", "F", "M", "M", "F", "F", "M", "M", "F", "F", "M", "F", "F", "F", "M", "F", "M", "M", "F", "F", "F", "F", "F", "F", "M", "F", "M", "M", "M", "F", "M", "F", "M", "F", "F", "M", "M", "M", "F", "F", "F", "M", "M", "M", "F", "M", "M", "M", "M", "F", "M", "F", "F", "F", "F", "F", "F", "M", "M", "F", "F", "F", "M", "M", "F", "M", "M", "F", "M", "F", "F", "M", "F", "M", "M", "F", "F", "M", "F", "F", "F", "M", "F", "M", "M", "M", "M", "M", "M", "F", "F", "M", "F", "M", "M", "F", "M", "F", "M", "F", "F", "M", "M", "F", "M", "F", "M", "F", "M", "M", "F", "M", "F", "F", "F", "F", "F", "F", "M", "M", "M", "F", "M", "F", "F", "F", "M", "M", "M", "F", "F", "F", "M", "M", "M", "M", "M", "M", "M", "F", "F", "M", "M", "F", "F", "F", "M", "F", "F", "F", "M", "F", "F", "F", "M", "F", "M", "F", "F", "M", "F", "M", "F", "M", "F", "M", "F", "F", "F", "M", "F", "M", "M", "M", "M", "M", "M", "M", "F", "F", "M", "M", "M", "M", "M", "F", "M", "F", "F", "M", "F", "F", "M", "F", "M", "F", "M", "F", "M", "M", "F", "F", "F", "F", "M", "M", "M", "F", "F", "F", "F", "M", "M", "M", "F", "M", "M", "M", "F", "F", "M", "F", "F", "M", "M", "M", "M", "M", "F", "M", "M", "F", "F", "F", "F", "M", "F", "M", "M", "M", "F", "F", "F", "M", "M", "M", "F", "F", "F", "M", "M", "M", "M", "M", "F", "F", "M", "M", "F", "M", "M", "M", "F", "F", "F", "F", "M", "M", "M", "M", "M", "M", "F", "M", "M", "M", "M", "F", "M", "F", "F", "M", "F", "F", "F", "F", "M", "F", "F", "M", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "M", "F", "F", "M", "M", "F", "F", "F", "F", "F", "M", "M", "M", "M", "F", "F", "F", "M", "F", "M", "F", "M", "M", "M", "M", "F", "M", "M", "M", "M", "M", "F", "F", "F", "F", "F", "F", "F", "M", "M", "F", "F", "F", "F", "M", "F", "M", "F", "F", "M", "M", "F", "F", "F", "F", "F", "M", "M", "F", "M", "F", "F", "F", "F", "F", "F", "M", "F", "F", "F", "M", "F", "F", "F", "M", "M", "F", "M", "M", "F", "F", "M", "M", "F", "F", "F", "F", "F", "M", "F", "M", "M", "F", "F", "M", "M", "F", "M", "F", "F", "F", "M", "F", "F", "F", "F", "F", "F", "F", "M", "M", "F", "M", "F", "F", "M", "F", "F", "M", "M", "F", "M", "M", "F", "F", "F", "M", "F", "M", "F", "F", "F", "F", "M", "M", "M", "F", "M", "F", "F", "M", "M", "M", "M", "M", "F", "F", "M", "F", "F", "M", "M", "M", "F", "M", "F", "M", "F", "M", "M", "M", "M", "F", "F", "F", "M", "M", "F", "M", "F", "M", "F", "F", "M", "F", "M", "F", "F", "F", "F", "M", "M", "M", "M", "M", "F", "F", "M", "F", "F", "F", "F", "F", "M", "F", "F", "M", "F", "F", "M", "M", "M", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "M", "F", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "M", "M", "M", "F", "F", "M", "M", "M", "M", "F", "F", "F", "M", "F", "F", "F", "M", "F", "M", "F", "F", "F", "F", "M", "F", "M", "M", "F", "M", "M", "F", "M", "F", "M", "M", "F", "F", "M"];
+	
+	var choice = Math.floor(Math.random() * popular_names.length);
+	name = popular_names[choice];
+	gender = name_genders[choice];
+}
+else {
+	if (gender == "F") {
+		var dd = document.getElementById("GenderPicker");
+		for (var i = 0; i < dd.options.length; i++) {
+			if (dd.options[i].value === gender) {
+				dd.selectedIndex = i;
+				break;
+			}
+		}
+	}
+	
+	document.getElementById("NamePicker").value = name;
+}
+
+document.getElementById("download_url").href = "names/" + gender + "/" + name.charAt(0) + "/" + name + ".txt";
+
+var gender_text = "girls";
+if (gender == "M") {
+	gender_text = "boys";
+}
+
+plotName(name, gender);
+</script>
+
+</body>
