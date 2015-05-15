@@ -42,6 +42,25 @@
 </style>
 <body>
 
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<script type="text/javascript">
+(function(d){
+    var f = d.getElementsByTagName('SCRIPT')[0], p = d.createElement('SCRIPT');
+    p.type = 'text/javascript';
+    p.async = true;
+    p.src = '//assets.pinterest.com/js/pinit.js';
+    f.parentNode.insertBefore(p, f);
+}(document));
+</script>
+
 <center>
 <br />
 
@@ -79,7 +98,34 @@
 <p>Records prior to 1940 are <a href="http://www.prooffreader.com/2014/08/sex-ratio-is-clearest-indicator-of-bias.html">estimates</a> and should be taken with a grain of salt.</p>
 
 <p>Records after 1985 are based on Social Security records and are quite reliable.</p>
+<br />
+<table width="470px" style="border-collapse: separate; margin: 0 auto;">
+<tr>
+	<!-- reddit -->
+	<td><script type="text/javascript" src="//www.redditstatic.com/button/button1.js"></script></td>
+	
+    <!-- Facebook -->
+    <td><div class="fb-share-button" data-href="http://rhiever.github.io/name-age-calculator/" data-layout="button_count"></div></td>
+    
+    <!-- Twitter -->
+    <td><a href="https://twitter.com/share" class="twitter-share-button" data-text="Look up your name on the Name Age Calculator:" data-via="randal_olson" data-hashtags="dataviz">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></td>
+    
+    <!-- LinkedIn -->
+    <td><script src="//platform.linkedin.com/in.js" type="text/javascript"> lang: en_US</script>
+    <script type="IN/Share" data-counter="right"></script></td>
 
+	<!-- Pinterest -->
+	<td><a href="https://www.pinterest.com/pin/create/button/
+        ?url=http%3A%2F%2Fwww.flickr.com%2Fphotos%2Fkentbrew%2F6851755809%2F
+        &media=http%3A%2F%2Ffarm8.staticflickr.com%2F7027%2F6851755809_df5b2051c9_z.jpg
+        &description=Next%20stop%3A%20Pinterest"
+        data-pin-do="buttonPin"
+        data-pin-config="above">
+        <img src="//assets.pinterest.com/images/pidgets/pin_it_button.png" /></a></td>
+</tr>
+</table>
+<br />
 <table width="720px">
 <tr>
 <td align="left" width="33%">Code and analysis by <strong><a href="http://www.randalolson.com/">Randy Olson</a></strong></td>
@@ -87,6 +133,7 @@
 <td align="right" width="33%">Methods from <strong><a href="http://fivethirtyeight.com/features/how-to-tell-someones-age-when-all-you-know-is-her-name/">FiveThirtyEight</a></strong><br />Data from <strong>SSA.gov <a href="http://www.ssa.gov/oact/babynames/limits.html">[1]</a> <a href="http://www.ssa.gov/oact/NOTES/as120/LifeTables_Tbl_7.html">[2]</a></strong></td>
 </tr>
 </table>
+<br />
 </center>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
