@@ -242,7 +242,7 @@ function getParam ( sname )
     	break;
     }
    }
-   return sval;
+   return sval.split("+")[0];
 }
 
 var name = toTitleCase(getParam("Name"));
