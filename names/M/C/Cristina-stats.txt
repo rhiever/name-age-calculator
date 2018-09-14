@@ -1,2 +1,2 @@
 Median,25th_Percentile,75th_Percentile
-1987,1982,1992
+1987,1983,1992

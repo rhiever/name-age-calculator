@@ -1,2 +1,0 @@
-Median,25th_Percentile,75th_Percentile
-1919,1918,1920

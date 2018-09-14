@@ -1,2 +1,2 @@
 Median,25th_Percentile,75th_Percentile
-1971,1964,1979
+1974,1966,2002
